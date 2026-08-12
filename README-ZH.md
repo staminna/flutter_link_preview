@@ -4,6 +4,8 @@
 
 文档语言: [English](README.md) | [中文简体](README-ZH.md)
 
+> **注意**：本中文文档针对 1.x 版本。2.0.0 为破坏性升级（空安全、Dart 3、Flutter Web 支持），迁移说明请参阅英文 [README](README.md) 的 "Migrating to 2.0" 章节。
+
 ![Demo](images/web1.png)
 
 ## 特色功能

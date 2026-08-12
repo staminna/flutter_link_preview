@@ -1,3 +1,31 @@
+## [2.0.0] - 2026-08-12
+
+Breaking modernization release: null safety, Dart 3, Flutter Web.
+
+### Breaking
+
+-   Requires Dart >= 3.4 / Flutter >= 3.22.
+-   Null safety: `builder` is now `Widget Function(InfoBase? info)?`; `WebInfo.title/description/icon/image` are `String?`; `WebInfo.redirectUrl` is non-null.
+-   `InfoBase` is now `sealed` (exhaustive `switch` supported; no user subclassing).
+-   `WebAnalyzer.getInfo` returns `Future<InfoBase?>`; disable caching with `Duration.zero` instead of `null`.
+-   Removed site-specific hacks: hard-coded weibo.com cookie, m.tb.cn body re-request, m.toutiaoimg.cn mobile user agent.
+-   Removed the insecure accept-all bad-certificate callback (invalid TLS certificates now fail, as they should).
+
+### Added
+
+-   Flutter Web support (`useMultithread` degrades to inline execution on web; CORS limits apply, see README).
+-   Charset handling: honors the Content-Type header and `<meta charset>`; GBK via `package:charset` (pure Dart, web-safe) replacing the discontinued `gbk2utf8`; lenient UTF-8 as last resort.
+-   `WebAnalyzer.userAgent` (configurable), a request `timeout` parameter, and an optional `WebAnalyzer.logger` hook (the package no longer prints to the console).
+-   Handles 307/308 redirects in addition to 301/302/303.
+-   Unit and widget tests; `flutter_lints`.
+
+### Fixed
+
+-   Expired cache entries were still returned once after expiry; they are now evicted and refetched.
+-   `og:video` meta tags were stripped before parsing, so `WebVideoInfo` was never produced from OpenGraph data.
+-   `useMultithread` now uses `Isolate.run` instead of manual port/serialization machinery.
+-   The widget refetches when its `url` changes (`didUpdateWidget`), and stale in-flight results no longer overwrite newer ones.
+
 ## [1.5.6] - 2020-9-9.
 
 -   Solve the problem that individual website can't be fetched
