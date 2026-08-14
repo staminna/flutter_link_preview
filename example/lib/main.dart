@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_link_preview/flutter_link_preview.dart';
+import 'package:flutter_link_preview_update/flutter_link_preview_update.dart';
 
 void main() {
   runApp(const MyApp());

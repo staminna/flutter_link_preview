@@ -1,6 +1,18 @@
-# flutter_link_preview
+# flutter_link_preview_update
 
-This is a URL preview plugin that previews the content of a URL
+**Maintained by Jorge Nunes** — [github.com/staminna](https://github.com/staminna)
+
+A URL preview widget for Flutter: fetches a page and extracts its title,
+description, icon and image, with OpenGraph support, caching, charset handling
+and Flutter Web support.
+
+> ### Original credits
+>
+> This package is a fork of [**flutter_link_preview**](https://github.com/yungzhu/flutter_link_preview)
+> by [**yungzhu**](https://github.com/yungzhu), whose work is the foundation of
+> everything here. All credit for the original design and implementation belongs
+> to the original author; this fork exists to carry it forward to Dart 3 and
+> Flutter Web, and is published under the original MIT licence.
 
 Language: [English](README.md) | [中文简体](README-ZH.md)
 

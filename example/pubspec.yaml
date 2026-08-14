@@ -1,5 +1,5 @@
 name: flutter_link_preview_example
-description: Demo for flutter_link_preview.
+description: Demo for flutter_link_preview_update.
 publish_to: "none"
 version: 1.0.0+1
 
@@ -9,7 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_link_preview:
+  flutter_link_preview_update:
     path: ../
   cached_network_image: ^3.4.1
 
