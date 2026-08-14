@@ -49,6 +49,8 @@ http.Response htmlResponse(String body, {String contentType = 'text/html'}) =>
     http.Response(body, 200, headers: {'content-type': contentType});
 
 void main() {
+  _descriptionFallbackTests();
+
   tearDown(() {
     WebAnalyzer.clientFactoryOverride = null;
     WebAnalyzer.logger = null;
@@ -307,5 +309,76 @@ void main() {
   test('runIsolated executes the computation on an isolate', () async {
     final result = await runIsolated(() async => 21 * 2);
     expect(result, 42);
+  });
+}
+
+/// A page shaped like the ones that exposed the bug: no description meta tag
+/// anywhere, a navigation bar full of words, and the real content further down.
+const noMetaDescriptionFixture = '''
+<html>
+<head><title>Encyclopedia</title></head>
+<body>
+  <nav>Jump to content Main menu move to sidebar hide Navigation Main page Contents Current events Random article About Contact us Contribute Help Learn to edit</nav>
+  <header>Search Appearance Donate Create account Log in Personal tools</header>
+  <p>Short label</p>
+  <p>Flutter is an open-source UI software development kit created by Google, used to build cross-platform applications from a single codebase.</p>
+</body>
+</html>
+''';
+
+/// Navigation only — nothing on the page reads like a sentence.
+const chromeOnlyFixture = '''
+<html>
+<head><title>Link Aggregator</title></head>
+<body>
+  <nav>new | past | comments | ask | show | jobs | submit | login</nav>
+  <p>1.</p>
+  <p>2.</p>
+</body>
+</html>
+''';
+
+void _descriptionFallbackTests() {
+  group('description without a meta tag', () {
+    tearDown(() {
+      WebAnalyzer.clientFactoryOverride = null;
+      WebAnalyzer.clearCache();
+    });
+
+    test('takes the first real paragraph, never the navigation', () async {
+      serve({'https://wiki.example/': htmlResponse(noMetaDescriptionFixture)});
+      final info = await WebAnalyzer.getInfo('https://wiki.example/',
+          cache: Duration.zero) as WebInfo;
+
+      expect(info.description, startsWith('Flutter is an open-source UI'));
+      expect(info.description, isNot(contains('Main menu')));
+      expect(info.description, isNot(contains('Log in')));
+      // "Short label" is a paragraph too, and too short to be a description.
+      expect(info.description, isNot(contains('Short label')));
+    });
+
+    test('leaves it null when the page is only chrome', () async {
+      serve({'https://news.example/': htmlResponse(chromeOnlyFixture)});
+      final info = await WebAnalyzer.getInfo('https://news.example/',
+          cache: Duration.zero) as WebInfo;
+
+      // A title with no description beats a title followed by a menu.
+      expect(info.title, 'Link Aggregator');
+      expect(info.description, isNull);
+    });
+
+    test('twitter:description is read when OpenGraph is absent', () async {
+      serve({
+        'https://tw.example/': htmlResponse('''
+<html><head><title>T</title>
+<meta name="twitter:description" content="From the Twitter card" />
+</head><body><p>${'body text that is comfortably longer than sixty characters'}</p></body></html>
+'''),
+      });
+      final info = await WebAnalyzer.getInfo('https://tw.example/',
+          cache: Duration.zero) as WebInfo;
+
+      expect(info.description, 'From the Twitter card');
+    });
   });
 }

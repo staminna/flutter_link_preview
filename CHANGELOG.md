@@ -1,3 +1,21 @@
+## [2.0.1] - 2026-08-14
+
+### Fixed
+
+-   A page with no description meta tag no longer previews as its own
+    navigation. The fallback used to strip every tag from the document and
+    return the first 300 characters, so Wikipedia read "Jump to content Main
+    menu move to sidebar hide Navigation Main pageContents…" and Hacker News
+    read its own header and login links. It now takes the first paragraph that
+    reads like a sentence, ignoring `nav`, `header`, `footer`, `aside`, `form`,
+    `script`, `style` and `noscript`, and returns null when the page has no
+    prose — a title alone beats a title followed by a menu.
+
+### Added
+
+-   `twitter:description` is read when OpenGraph and `meta name="description"`
+    are both absent.
+
 ## [2.0.0] - 2026-08-12
 
 Breaking modernization release: null safety, Dart 3, Flutter Web.

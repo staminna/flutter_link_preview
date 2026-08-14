@@ -1,6 +1,6 @@
 name: flutter_link_preview
 description: A URL preview widget that fetches a page and extracts title, description, icon and image (OpenGraph-aware), with caching, charset/GBK support and Flutter Web support.
-version: 2.0.0
+version: 2.0.1
 homepage: https://github.com/yungzhu/flutter_link_preview
 repository: https://github.com/yungzhu/flutter_link_preview
 topics:

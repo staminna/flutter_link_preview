@@ -31,9 +31,6 @@ class WebAnalyzer {
   static final Map<String, _CacheEntry> _cache = {};
   static final RegExp _bodyReg =
       RegExp(r"<body[^>]*>([\s\S]*?)<\/body>", caseSensitive: false);
-  static final RegExp _htmlReg = RegExp(
-      r"(<head[^>]*>([\s\S]*?)<\/head>)|(<script[^>]*>([\s\S]*?)<\/script>)|(<style[^>]*>([\s\S]*?)<\/style>)|(<[^>]+>)|(<link[^>]*>([\s\S]*?)<\/link>)|(<[^>]+>)",
-      caseSensitive: false);
   static final RegExp _metaReg = RegExp(
       r"<(meta|link)(.*?)\/?>|<title(.*?)</title>",
       caseSensitive: false,
@@ -313,21 +310,61 @@ class WebAnalyzer {
   }
 
   static String? _analyzeDescription(Document document, String html) {
-    final desc = _getMetaContent(document, "property", "og:description");
-    if (desc != null) return desc;
-
-    final description = _getMetaContent(document, "name", "description") ??
+    final desc = _getMetaContent(document, "property", "og:description") ??
+        _getMetaContent(document, "name", "twitter:description") ??
+        _getMetaContent(document, "name", "description") ??
         _getMetaContent(document, "name", "Description");
+    if (isNotEmpty(desc)) return desc;
+    return _firstProse(html);
+  }
 
-    if (!isNotEmpty(description)) {
-      String body = html.replaceAll(_htmlReg, "");
-      body = body.trim().replaceAll(_lineReg, " ").replaceAll(_spaceReg, " ");
-      if (body.length > 300) {
-        body = body.substring(0, 300);
-      }
-      return body;
+  /// The first paragraph on the page that reads like prose, or null.
+  ///
+  /// This replaces a fallback that stripped every tag from the whole document
+  /// and returned the first 300 characters. On a page without a description
+  /// meta tag that is the navigation rather than the content: Wikipedia
+  /// previewed as "Jump to content Main menu Main menu move to sidebar hide
+  /// Navigation Main pageContents…" and Hacker News as its own header and
+  /// login links. A preview showing a site's menu is worse than one showing no
+  /// description at all, so when nothing here reads like a sentence the answer
+  /// is null and the widget simply renders the title.
+  ///
+  /// Only runs when the meta tags are missing, which is what makes parsing the
+  /// whole document affordable — the common path still parses the head alone.
+  static String? _firstProse(String html) {
+    final Document document;
+    try {
+      document = parser.parse(html);
+    } catch (_) {
+      return null;
     }
-    return description;
+    // Chrome, not content. Removed wholesale so that a paragraph nested inside
+    // a banner cannot win over the article's own opening line.
+    for (final tag in const [
+      "script",
+      "style",
+      "nav",
+      "header",
+      "footer",
+      "aside",
+      "form",
+      "noscript",
+    ]) {
+      for (final element in document.getElementsByTagName(tag).toList()) {
+        element.remove();
+      }
+    }
+    for (final paragraph in document.getElementsByTagName("p")) {
+      final text = paragraph.text
+          .replaceAll(_lineReg, " ")
+          .replaceAll(_spaceReg, " ")
+          .trim();
+      // Long enough to be a sentence rather than a label, a byline, or a
+      // cookie banner's "OK".
+      if (text.length < 60) continue;
+      return text.length > 300 ? text.substring(0, 300) : text;
+    }
+    return null;
   }
 
   static String? _analyzeIcon(Document document, Uri uri) {
